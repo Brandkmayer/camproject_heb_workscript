@@ -1,0 +1,207 @@
+---
+title: "Photo Data Processing- White Mountains, Arizona"
+author: "Andrew Antaya con Brandon Mayer"
+output:
+  html_notebook: default
+  pdf_document: default
+  word_document: default
+---
+***
+First, let's get our R environment ready by loading some useful packages.
+```{r,  echo=FALSE}
+library("ggplot2")
+library("dplyr")
+library("tidyr")
+library("jpeg")
+library("viridis")
+library("scales")
+library("knitr")
+library("lubridate")
+```
+***
+
+Then, let's remove all objects from the environment to start fresh each time.
+```{r}
+# clear the enviroment
+rm(list=ls(all=TRUE))
+```
+
+***
+Let's check the working directory to see if it's correct.
+```{r}
+# check working directory
+getwd()
+setwd('C:/Users/BrandonMayer/Dropbox/Field_Research/HebCamProject')
+setwd('C:/Users/brand/Dropbox/Field_Research/HebCamProject')
+```
+Looks good for my (Brandon's) PC
+
+***
+I created an external R script with contains all of the functions that I commongly use across different scripts. This chunk of code reads in those functions into the global R environment. 
+```{r}
+## the source() funciton executes all lines of code in the "mentioned" script (i.e. the pathway)
+source(file = "functions.R")
+source(file = "plot_functions.R")
+source(file = "dm_functions.R")
+source(file = "grpgrztime_functions.R")
+```
+
+***
+Let's read in the RAW photo data from 2017 and 2018, which human observers classified in a custom Excel macro (.xlsm) (written in VBA). The macro generates information for each image based on observes clicking different options based on what they see in each photo. We saved each of the .xlsm files (each file corresponding to a site and year) as .csv files for ease of use in R and to convert to a non-proprietary format.
+
+For the first step in cleaing up the camera data, we are going to treat all fields with "" (blanks), " " (spaces- typically accidental input which is invisble in Excel), or "NA" (characters), as NA's inside R using the function na.strings(). This will help us deal with missing information in our dataset.
+```{r}
+## read in the 2017 data, treating all blanks, spaces, and "NA"s as NA's
+BRL17RAW<-read.csv('C:/Users/Brandonmayer/Dropbox/Field_Research/HebCamProject/Analysis/Data/CameraWork/BRL_Analysis_2017_Completed.csv', header=TRUE, na.strings=c(""," ","NA"))
+## read in the 2018 data, treating all blanks, spaces, and "NA"s as NA's
+BRL18RAW<-read.csv('C:/Users/Brandonmayer/Dropbox/Field_Research/HebCamProject/Analysis/Data/CameraWork/BRL_Analysis_2018_Completed.csv', header=TRUE, na.strings=c(""," ","NA"))
+## read in the 2017 data, treating all blanks, spaces, and "NA"s as NA's
+BKL17RAW<-read.csv('C:/Users/Brandonmayer/Dropbox/Field_Research/HebCamProject/Analysis/Data/CameraWork/BKL_Analysis_2017_Completed.csv', header=TRUE, na.strings=c(""," ","NA"))
+## read in the 2018 data, treating all blanks, spaces, and "NA"s as NA's
+BKL18RAW<-read.csv('C:/Users/Brandonmayer/Dropbox/Field_Research/HebCamProject/Analysis/Data/CameraWork/BKL_Analysis_2018_Completed.csv', header=TRUE, na.strings=c(""," ","NA"))
+```
+
+***
+We read in 2 CSV files containing the camera data. Each dataframe corresponds to a site and year (e.g., BKL18 is Boggy West Timelapse, data from year 2018). In all of the dataframes, each row corresponds to a single image and each column corresponds to a single 'variable'. Some of these 'variables' are actually metadata, such as the file name of the image and the file path.
+```{r}
+head(BKL18RAW)
+```
+***
+Some of the images we classified in the Excel macro were 'empty' (i.e. the observer could not detect a subject in the image). We want to remove these empty images from analysis.
+
+We're going to use the "Count1Species"" column in each dataframe to remove 'empty' photos. The "Count1Species" column corresponds to the 1st detected species in each photo (i.e. the primary species (>50%) if more than one species is detected in a photo). If the image is 'empty' then it will have "NA" for a value in the "Count1Species" column. We're going to use the function complete.cases() to remove all of the rows that have "NA" in the "Count1Species" column. We'll do this for each of the dataframes, and save these new dataframes into new objects. 
+```{r}
+## remove the observations that have NAs in the Count1Species column
+BRL18<- BRL18RAW[complete.cases(BRL18RAW[ , 'Count1Species']),]
+BRL17<- BRL17RAW[complete.cases(BRL17RAW[ , 'Count1Species']),]
+BKL18<- BKL18RAW[complete.cases(BKL18RAW[ , 'Count1Species']),]
+BKL17<- BKL17RAW[complete.cases(BKL17RAW[ , 'Count1Species']),]
+```
+
+***
+We no longer need the raw dataframes, so we can remove them from our environment just to clean things up a bit.
+```{r}
+rm(BRL18RAW, BRL17RAW, BKL18RAW, BKL17RAW)
+```
+
+***
+We're going to use a function I created called "speciestotal" (see the functions.R script) which is specific to the way we classified our data. The issue is that the 'Count1Species' column in our dataframes doesn't correspond to a specific species, rather it corresponds to whatever species is the primary species detected (>50% of individuals if a multiple species are detected in an image). 
+
+The "speciestotal" function will count up the number of individuals for each species detected in a camera trap photo and then create a new column in the corresponding dataframe to store this species count. The new column is labled by the species and contains a count of the number of individuals detected in each image.
+
+A second funtion "allspecies" uses the "speciestotal" function for all of the species possible (24 total), and creates a new column for each species. 
+
+Let's calculate the species total for all of the dataframes (i.e. all sites).
+Equivalent to 
+```{r}
+
+BRL17 <- allspecies(BRL17)
+BRL18 <- allspecies(BRL18)
+BKL17 <- allspecies(BKL17)
+BKL18 <- allspecies(BKL18)
+
+```
+
+***
+Take a look a the new dataframe. We've removed NAs and did some calculations to the dataframe which created new columns with species counts.
+
+```{r}
+head(BKL18)
+```
+
+***
+Now that the data is cleaned up and we did some preliminary calculations, we're ready to start the analysis. First, let's calculate the Total Detections metric, which is the number of individuals of each species in a photo, summed for all the photos taken at a site for the season. Note: Total Detections does not represent the number of unique individuals using a site, rather Total Detections represents the same individuals revisiting a site across time and are counted again.
+```{r}
+
+BKL18TotalDetections <- counts.df(BKL18)
+
+BKL17TotalDetections <- counts.df(BKL17)
+
+head(BKL18TotalDetections)
+
+```
+_________________________________________________________________________________________________________
+
+```{r}
+# make empty data frames for each species of interest
+horses <- data.frame(matrix(ncol=0,nrow=0))
+cattle <- data.frame(matrix(ncol=0,nrow=0))
+elk <- data.frame(matrix(ncol=0,nrow=0))
+deer <- data.frame(matrix(ncol=0,nrow=0))
+```
+Run subdfgrp_by_spec(BKL18) to create a new data.frame including one species of interest per site
+Use Ctrl*f and "replace all" with chunk "in selection"
+  * five (5) occurences should take place. 
+```{r}
+subdfngrp_spec(BKL17)
+BKL17horses <- horses
+BKL17cattle <- cattle
+BKL17elk <- elk
+BKL17deer <- deer
+subdfngrp_spec(BKL18)
+BKL18horses <- horses
+BKL18cattle <- cattle
+BKL18elk <- elk
+BKL18deer <- deer
+subdfngrp_spec(BRL17)
+BRL17horses <- horses
+BRL17cattle <- cattle
+BRL17elk <- elk
+BRL17deer <- deer
+subdfngrp_spec(BRL18)
+BRL18horses <- horses
+BRL18cattle <- cattle
+BRL18elk <- elk
+BRL18deer <- deer
+```
+Remove main data frames and extra species dfs. Wont be necessary now and you can always reload them
+```{r}
+rm(BKL17, BKL18, BRL17, BRL18 )
+rm(horses, cattle, elk, deer)
+
+```
+==================================================================================================================================================================================================================== 
+Applies grpgrz_seq() to each species specific data frame and build a collective data frame
+```{r warning=FALSE}
+BRL17totgrpgrztme <- bldtot_grztme("Bear", "2017", BRL17cattle, BRL17horses, BRL17elk, BRL17deer)
+BKL17totgrpgrztme <- bldtot_grztme("Black canyon", "2017", BKL17cattle, BKL17horses, BKL17elk, BKL17deer)
+BRL18totgrpgrztme <- bldtot_grztme("Bear", "2018", BRL18cattle, BRL18horses, BRL18elk, BRL18deer)
+BKL18totgrpgrztme <- bldtot_grztme("Black canyon", "2018", BKL18cattle, BKL18horses, BKL18elk, BKL18deer)
+
+BRLtotgrpgrztme <- rbind(BRL17totgrpgrztme, BRL18totgrpgrztme)
+BKLtotgrpgrztme <- rbind(BKL17totgrpgrztme, BKL18totgrpgrztme)
+
+or 
+multsitegrpgrz<- rbind(BRL17totgrpgrztme, BRL18totgrpgrztme, BKL17totgrpgrztme, BKL18totgrpgrztme)
+
+```
+
+```{r}
+ 
+# Individual plots
+  plotBRL17 <- barchart4sp_werr(BRL17totgrpgrztme,"Bear 2017", "Average time spent at site by group", "Time (minutes)")
+  plotBRL18 <- barchart4sp_werr(BRL18totgrpgrztme,"Bear 2018", "Average time spent at site by group", "Time (minutes)")
+  plotBKL17 <- barchart4sp_werr(BKL17totgrpgrztme,"Black canyon 2017", "Average time spent at site by group", "Time (minutes)")
+  plotBKL18 <- barchart4sp_werr(BKL18totgrpgrztme,"Black canyon 2017", "Average time spent at site by group", "Time (minutes)")
+
+heb_compar <- bind4graphs(plotBRL17, plotBRL18, plotBKL17, plotBKL18)
+# Paired
+ BRLtotgrpgrztme %>% group_by(year, species) %>% summarize(Mean = ceiling(mean(Time)), Min = min(Time), Max = max(Time), Total = sum(Time))
+ BKLtotgrpgrztme %>% group_by(year, species) %>% summarize(Mean = ceiling(mean(Time)), Min = min(Time), Max = max(Time), Total = sum(Time))
+pairplotBRL <- paired_barchart(BRLtotgrpgrztme, "Bear") 
+pairplotBKL <- paired_barchart(BKLtotgrpgrztme, "Black Canyon") 
+
+bind2graphs(pairplotBRL, pairplotBKL)
+
+sitepaired_barchart(multsitegrpgrz)
+```
+
+```{r}
+
+
+
+```
+
+```{r}
+
+```

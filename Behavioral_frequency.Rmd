@@ -31,11 +31,10 @@ length(BKL18deer$group[!duplicated(BKL18deer$group)])
 
 length(forage$group[!duplicated(forage$group)])/length(BKL18deer)
 
-
 ```
-*****Incomplete function***** Just run as is inside of the function
+
 ```{r}
-bhvr_freq_bysp <- function(behavior_df) {
+bhvr_freq_bysp <- function(site, BKL18horses, BKL18cattle, BKL18elk, BKL18deer) {
   forage_h <- as_tibble(filter(BKL18horses, ConditionsB1 == "Forage"))
   forage_c <- as_tibble(filter(BKL18cattle, ConditionsB1 == "Forage"))
   forage_e <- as_tibble(filter(BKL18elk, ConditionsB1 == "Forage"))
@@ -67,15 +66,18 @@ bhvr_freq_bysp <- function(behavior_df) {
   unknown_d <- as_tibble(filter(BKL18deer, ConditionsB6 == "Unknown"))
 
   # Depending on how you want to display the data you can create a df of 4 columns (site,species,behavior, value) which works well with ggplot 
-# ___________________________________ Data.frame presentation ___________________________________________
-  Bhr_freq_h_build <- data.frame(Site = "Black Canyon", Species = "Horses", Behavior = c("Forage", "Drinking", "Movement", "Bedding", "standing", "Unknown"), Value = (c(length(forage_h$group[!duplicated(forage_h$group)]), length(drink_h$group[!duplicated(drink_h$group)]),length(walk_run_h$group[!duplicated(walk_run_h$group)]),length(bed_h$group[!duplicated(bed_h$group)]),length(stand_h$group[!duplicated(stand_h$group)]),length(unknown_h$group[!duplicated(unknown_h$group)]))))
-    Bhr_freq_c_build <- data.frame(Site = "Black Canyon", Species = "Cattle", Behavior = c("Forage", "Drinking", "Movement", "Bedding", "standing", "Unknown"), Value = (c(length(forage_c$group[!duplicated(forage_c$group)]), length(drink_c$group[!duplicated(drink_c$group)]),length(walk_run_c$group[!duplicated(walk_run_c$group)]),length(bed_c$group[!duplicated(bed_c$group)]),length(stand_c$group[!duplicated(stand_c$group)]),length(unknown_c$group[!duplicated(unknown_c$group)]))))
-    Bhr_freq_e_build <- data.frame(Site = "Black Canyon", Species = "Elk", Behavior = c("Forage", "Drinking", "Movement", "Bedding", "standing", "Unknown"), Value = (c(length(forage_e$group[!duplicated(forage_e$group)]), length(drink_e$group[!duplicated(drink_e$group)]),length(walk_run_e$group[!duplicated(walk_run_e$group)]),length(bed_e$group[!duplicated(bed_e$group)]),length(stand_e$group[!duplicated(stand_e$group)]),length(unknown_e$group[!duplicated(unknown_e$group)]))))
-    Bhr_freq_d_build <- data.frame(Site = "Black Canyon", Species = "Muledeer", Behavior = c("Forage", "Drinking", "Movement", "Bedding", "standing", "Unknown"), Value = (c(length(forage_d$group[!duplicated(forage_d$group)]), length(drink_d$group[!duplicated(drink_d$group)]),length(walk_run_d$group[!duplicated(walk_run_d$group)]),length(bed_d$group[!duplicated(bed_d$group)]),length(stand_d$group[!duplicated(stand_d$group)]),length(unknown_d$group[!duplicated(unknown_d$group)]))))
-bhr_freq_df_1 <- rbind(Bhr_freq_h_build, Bhr_freq_c_build, Bhr_freq_e_build, Bhr_freq_d_build)
-bhr_freq_df_2 <- rbind(Bhr_freq_h_build, Bhr_freq_c_build, Bhr_freq_e_build, Bhr_freq_d_build)
+# # ___________________________________ Data.frame presentation___________________________________________
+  Bhr_freq_h_build <- data.frame(Site = site, Species = "Horses", Behavior = c("Forage", "Drinking", "Movement", "Bedding", "standing", "Unknown"), Value = (c(length(forage_h$group[!duplicated(forage_h$group)]), length(drink_h$group[!duplicated(drink_h$group)]),length(walk_run_h$group[!duplicated(walk_run_h$group)]),length(bed_h$group[!duplicated(bed_h$group)]),length(stand_h$group[!duplicated(stand_h$group)]),length(unknown_h$group[!duplicated(unknown_h$group)]))))
+    Bhr_freq_c_build <- data.frame(Site = site, Species = "Cattle", Behavior = c("Forage", "Drinking", "Movement", "Bedding", "standing", "Unknown"), Value = (c(length(forage_c$group[!duplicated(forage_c$group)]), length(drink_c$group[!duplicated(drink_c$group)]),length(walk_run_c$group[!duplicated(walk_run_c$group)]),length(bed_c$group[!duplicated(bed_c$group)]),length(stand_c$group[!duplicated(stand_c$group)]),length(unknown_c$group[!duplicated(unknown_c$group)]))))
+    Bhr_freq_e_build <- data.frame(Site = site, Species = "Elk", Behavior = c("Forage", "Drinking", "Movement", "Bedding", "standing", "Unknown"), Value = (c(length(forage_e$group[!duplicated(forage_e$group)]), length(drink_e$group[!duplicated(drink_e$group)]),length(walk_run_e$group[!duplicated(walk_run_e$group)]),length(bed_e$group[!duplicated(bed_e$group)]),length(stand_e$group[!duplicated(stand_e$group)]),length(unknown_e$group[!duplicated(unknown_e$group)]))))
+    Bhr_freq_d_build <- data.frame(Site = site, Species = "Muledeer", Behavior = c("Forage", "Drinking", "Movement", "Bedding", "standing", "Unknown"), Value = (c(length(forage_d$group[!duplicated(forage_d$group)]), length(drink_d$group[!duplicated(drink_d$group)]),length(walk_run_d$group[!duplicated(walk_run_d$group)]),length(bed_d$group[!duplicated(bed_d$group)]),length(stand_d$group[!duplicated(stand_d$group)]),length(unknown_d$group[!duplicated(unknown_d$group)]))))
 
-bhr_freq_df_final <- rbind(bhr_freq_df_1, bhr_freq_df_2)
+bhr_freq_df <- rbind(Bhr_freq_h_build, Bhr_freq_c_build, Bhr_freq_e_build, Bhr_freq_d_build)
+}
+bhr_freq_df_BKL <- bhvr_freq_bysp("Black Canyon", BKL18horses, BKL18cattle, BKL18elk, BKL18deer) 
+bhr_freq_df_BRL <- bhvr_freq_bysp("Bear", BRL18horses, BRL18cattle, BRL18elk, BRL18deer) 
+
+bhr_freq_df_final <- rbind(bhr_freq_df_BKL, bhr_freq_df_BRL)
 
 # Or you can create a df visualization of 7 colmuns (species, forage, drink,...)
 # # ___________________________________ Table presentation _______________________________________________
@@ -101,26 +103,70 @@ bhr_freq_df_final <- rbind(bhr_freq_df_1, bhr_freq_df_2)
   #            Bed = (c(length(forage_h$group[!duplicated(forage_h$group)]/t_h), length(forage_c$group[!duplicated(forage_c$group)]/t_c), length(forage_e$group[!duplicated(forage_e$group)]/t_e), length(forage_d$group[!duplicated(forage_d$group)]/t_d))),
   #            Stand = (c(length(forage_h$group[!duplicated(forage_h$group)]/t_h), length(forage_c$group[!duplicated(forage_c$group)]/t_c), length(forage_e$group[!duplicated(forage_e$group)]/t_e), length(forage_d$group[!duplicated(forage_d$group)]/t_d))),
   #            Unknown = (c(length(forage_h$group[!duplicated(forage_h$group)]/t_h), length(forage_c$group[!duplicated(forage_c$group)]/t_c), length(forage_e$group[!duplicated(forage_e$group)]/t_e), length(forage_d$group[!duplicated(forage_d$group)]/t_d))))
-}
+# }
 
 # ____________________________________ DF: Percent behavioral frequency ________________________________
+bhvr_freq_byspbypct <- function(site, BKL18horses, BKL18cattle, BKL18elk, BKL18deer) {
+  forage_h <- as_tibble(filter(BKL18horses, ConditionsB1 == "Forage"))
+  forage_c <- as_tibble(filter(BKL18cattle, ConditionsB1 == "Forage"))
+  forage_e <- as_tibble(filter(BKL18elk, ConditionsB1 == "Forage"))
+  forage_d <- as_tibble(filter(BKL18deer, ConditionsB1 == "Forage"))
+  
+  drink_h <- as_tibble(filter(BKL18horses, ConditionsB2 == "Drink"))
+  drink_c <- as_tibble(filter(BKL18cattle, ConditionsB2 == "Drink"))
+  drink_e <- as_tibble(filter(BKL18elk, ConditionsB2 == "Drink"))
+  drink_d <- as_tibble(filter(BKL18deer, ConditionsB2 == "Drink"))
+  
+  walk_run_h <- as_tibble(filter(BKL18horses, ConditionsB3 == "Walk/Run"))
+  walk_run_c <- as_tibble(filter(BKL18cattle, ConditionsB3 == "Walk/Run"))
+  walk_run_e <- as_tibble(filter(BKL18elk, ConditionsB3 == "Walk/Run"))
+  walk_run_d <- as_tibble(filter(BKL18deer, ConditionsB3 == "Walk/Run"))
 
+  bed_h <- as_tibble(filter(BKL18horses, ConditionsB4 == "Bed"))
+  bed_c <- as_tibble(filter(BKL18cattle, ConditionsB4 == "Bed"))
+  bed_e <- as_tibble(filter(BKL18elk, ConditionsB4 == "Bed"))
+  bed_d <- as_tibble(filter(BKL18deer, ConditionsB4 == "Bed"))
+
+  stand_h <- as_tibble(filter(BKL18horses, ConditionsB5 == "Stand"))
+  stand_c <- as_tibble(filter(BKL18cattle, ConditionsB5 == "Stand"))
+  stand_e <- as_tibble(filter(BKL18elk, ConditionsB5 == "Stand"))
+  stand_d <- as_tibble(filter(BKL18deer, ConditionsB5 == "Stand"))
+  
+  unknown_h <- as_tibble(filter(BKL18horses, ConditionsB6 == "Unknown"))
+  unknown_c <- as_tibble(filter(BKL18cattle, ConditionsB6 == "Unknown"))
+  unknown_e <- as_tibble(filter(BKL18elk, ConditionsB6 == "Unknown"))
+  unknown_d <- as_tibble(filter(BKL18deer, ConditionsB6 == "Unknown"))
+  
+# creates a total group count of each behavior for each species
   t_h<- as.numeric(sum(length(forage_h$group[!duplicated(forage_h$group)]), length(drink_h$group[!duplicated(drink_h$group)]), length(walk_run_h$group[!duplicated(walk_run_h$group)]), length(bed_h$group[!duplicated(bed_h$group)]), length(stand_h$group[!duplicated(stand_h$group)]), length(unknown_h$group[!duplicated(unknown_h$group)]))) 
   t_c<- as.numeric(sum(length(forage_c$group[!duplicated(forage_c$group)]), length(drink_c$group[!duplicated(drink_c$group)]), length(walk_run_c$group[!duplicated(walk_run_c$group)]), length(bed_c$group[!duplicated(bed_c$group)]), length(stand_c$group[!duplicated(stand_c$group)]), length(unknown_c$group[!duplicated(unknown_c$group)])))
   t_e<- as.numeric(sum(length(forage_e$group[!duplicated(forage_e$group)]), length(drink_e$group[!duplicated(drink_e$group)]), length(walk_run_e$group[!duplicated(walk_run_e$group)]), length(bed_e$group[!duplicated(bed_e$group)]), length(stand_e$group[!duplicated(stand_e$group)]), length(unknown_e$group[!duplicated(unknown_e$group)])))
   t_d<- as.numeric(sum(length(forage_d$group[!duplicated(forage_d$group)]), length(drink_d$group[!duplicated(drink_d$group)]), length(walk_run_d$group[!duplicated(walk_run_d$group)]), length(bed_d$group[!duplicated(bed_d$group)]), length(stand_d$group[!duplicated(stand_d$group)]), length(unknown_d$group[!duplicated(unknown_d$group)])))  
+# makes a data frame with values based on a percentage
  Bhr_freq_h_build <- data.frame(Site = "Black Canyon", Species = "Horses", Behavior = c("Forage", "Drinking", "Movement", "Bedding", "standing", "Unknown"), Value = (c((length(forage_h$group[!duplicated(forage_h$group)])/t_h), (length(drink_h$group[!duplicated(drink_h$group)])/t_h),(length(walk_run_h$group[!duplicated(walk_run_h$group)])/t_h),(length(bed_h$group[!duplicated(bed_h$group)])/t_h),(length(stand_h$group[!duplicated(stand_h$group)])/t_h),(length(unknown_h$group[!duplicated(unknown_h$group)])/t_h))))
     Bhr_freq_c_build <- data.frame(Site = "Black Canyon", Species = "Cattle", Behavior = c("Forage", "Drinking", "Movement", "Bedding", "standing", "Unknown"), Value = (c((length(forage_c$group[!duplicated(forage_c$group)])/t_c), (length(drink_c$group[!duplicated(drink_c$group)])/t_c),(length(walk_run_c$group[!duplicated(walk_run_c$group)])/t_c),(length(bed_c$group[!duplicated(bed_c$group)])/t_c),(length(stand_c$group[!duplicated(stand_c$group)])/t_c),(length(unknown_c$group[!duplicated(unknown_c$group)])/t_c))))
     Bhr_freq_e_build <- data.frame(Site = "Black Canyon", Species = "Elk", Behavior = c("Forage", "Drinking", "Movement", "Bedding", "standing", "Unknown"), Value = (c((length(forage_e$group[!duplicated(forage_e$group)])/t_e), (length(drink_e$group[!duplicated(drink_e$group)])/t_e),(length(walk_run_e$group[!duplicated(walk_run_e$group)])/t_e),(length(bed_e$group[!duplicated(bed_e$group)])/t_e),(length(stand_e$group[!duplicated(stand_e$group)])/t_e),(length(unknown_e$group[!duplicated(unknown_e$group)])/t_e))))
     Bhr_freq_d_build <- data.frame(Site = "Black Canyon", Species = "Muledeer", Behavior = c("Forage", "Drinking", "Movement", "Bedding", "standing", "Unknown"), Value = (c((length(forage_d$group[!duplicated(forage_d$group)])/t_d), (length(drink_d$group[!duplicated(drink_d$group)])/t_d),(length(walk_run_d$group[!duplicated(walk_run_d$group)])/t_d),(length(bed_d$group[!duplicated(bed_d$group)])/t_d),(length(stand_d$group[!duplicated(stand_d$group)])/t_d),(length(unknown_d$group[!duplicated(unknown_d$group)])/t_d))))
 
-bhr_freq_df <- rbind(Bhr_freq_h_build, Bhr_freq_c_build, Bhr_freq_e_build, Bhr_freq_d_build)
+#Binds all the dfs into one 
+bhr_frq <- rbind(Bhr_freq_h_build, Bhr_freq_c_build, Bhr_freq_e_build, Bhr_freq_d_build)
 
+# function replaces any NAns in the df created from a division of 0 and 0 (looking at the cattle....)
 is.nan.data.frame <- function(x)
 do.call(cbind, lapply(x, is.nan))
+#goodbye Nan
+bhr_frq$Value[is.nan(bhr_frq$Value)] <- 0
+}
+bhr_pct_df_BKL <- bhvr_freq_byspbypct("Black Canyon", BKL18horses, BKL18cattle, BKL18elk, BKL18deer) 
+bhr_pct_df_BRL <- bhvr_freq_byspbypct("Bear", BRL18horses, BRL18cattle, BRL18elk, BRL18deer) 
 
-bhr_freq_df$Value[is.nan(bhr_freq_df$Value)] <- 0
-
-barchart4sp_bhvfreq(bhr_freq_df, bhr_freq_df, "Black Canyon", "Black Canyon")
-
+#Can plot next to each other by binding. 
+BKL18plot <- barchart_bhvpctfrq(bhr_pct_df_BKL, "Black Canyon")
+BKL18plot <- barchart_bhvpctfrq(bhr_pct_df_BRL, "Bear")
+bind2graphs(BKL18plot, BKL18plot)
+```
+```{r}
+# Can plot in a faceted graph using sitepaired_... 
+bhr_pct_df_final <- rbind(bhr_pct_df_BKL, bhr_pct_df_BRL)
+sitepaired_bhv_barchart(bhr_freq_df_final)
 ```

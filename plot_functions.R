@@ -146,52 +146,120 @@ box_grztime_wmean <- function(df){
 }
 
 #__________________________________________________7th Barchart with error bars _________________________________________________
+df <- BRL17totgrpgrztme
 barchart4sp_werr <- function(df, title, description, yaxis ) {
   values = c("#4472C4", "#ED7D31","#A5A5A5", "#FFC000")
-  df.summ <- df %>% group_by(species) %>% summarize(Mean = ceiling(mean(Time)), Min = min(Time), Max = max(Time), Total = sum(Time))
+  df.summ <- df %>% group_by(species) %>% summarize(Mean = ceiling(mean(Time)), Min = min(Time), Max = max(Time), Rise = Max/Mean[is.finite(Max/Mean)])
+  
   g <- ggplot(df.summ, aes(x = species, y = Mean, ymin = Min, ymax = Max, fill = values))
   
   g + geom_bar(stat="identity", width = 0.5,fill=values) +
-    geom_errorbar(width = 0.4)+
+    geom_errorbar(width = 0.3)+
     labs(title=title, 
          subtitle=description, 
          caption="") +
     labs(x="Grazing Species", 
          y=yaxis) +  # Axis labels
-    geom_text(data = df.summ, aes(label = Mean, y = Mean + 1.10), nudge_x = 0.115) + 
-    theme(axis.text.x = element_text(angle=65, 
-                                     vjust=0.6)
+    geom_text(data = df.summ, aes(label = Mean, y = Mean + (Max/Mean), nudge_x = 0.115)) + 
+    theme(axis.text.x = element_text(angle=65, vjust=0.6)
     )
 }
 
 # _____________________________________________ 8th Grouped Barchart __________________________________________________________
-# library
-library(ggplot2)
-#testing 
-# df1 <- 
-# df2 <- 
-# site1 <- "Black Canyon"
-# site2 <- "Black canyon"
 
+# BY PERCENT
 # to be used in conjunction with Behavioral_frequency 4 column data.frame.
 # includes Horse, cattle, elk, deer and is plotted to show 2 sites. Can be manipulated to add more
-
-barchart4sp_bhvfreq <- function(df1, df2, site1, site2 ) {
-  #site1
-  g1 <-ggplot(df1, aes(fill=Species, y=Value, x=Behavior)) + geom_bar(data = df1, position="dodge", stat="identity")
-  g1 + theme(panel.background = element_rect(fill = "white"),
-             panel.grid.major.y = element_line(colour = "grey70")
-  ) + scale_fill_manual(values=c("#4472C4", "#ED7D31","#A5A5A5", "#FFC000")) + ggtitle(site1) + theme(plot.title = element_text(hjust = 0.5)) + scale_y_continuous(name="Frequency", breaks=seq(0,1,0.05))
-  #site2
-  g2 <-ggplot(df2, aes(fill=Species, y=Value, x=Behavior)) + geom_bar(data = df2, position="dodge", stat="identity")
-  g2 <- g2 + theme(panel.background = element_rect(fill = "white"),
-                   panel.grid.major.y = element_line(colour = "grey70")
-  ) + scale_fill_manual(values=c("#4472C4", "#ED7D31","#A5A5A5", "#FFC000")) + ggtitle(site2) + theme(plot.title = element_text(hjust = 0.5)) + scale_y_continuous(name="Frequency", breaks=seq(0,1,0.05))
-  #site3?
-  # just add an additional g3 and plan ncol and nrow accordingly
+barchart_bhvpctfrq <- function(df, site_name) {
+  g <-ggplot(df, aes(fill=Species, y=Value, x=Behavior)) + geom_bar(data = df, position="dodge", stat="identity")
+  g <- g + theme(panel.background = element_rect(fill = "white"),
+                 panel.grid.major.y = element_line(colour = "grey70")
+  ) + scale_fill_manual(values=c("#4472C4", "#ED7D31","#A5A5A5", "#FFC000")) + ggtitle(site_name) + theme(plot.title = element_text(hjust = 0.5)) + scale_y_continuous(name="Frequency", breaks=seq(0,1,0.05))
+}
+# BY TOTAL COUNT
+barchart_bhvtotfrq <- function(df, site_name) {
+  g <-ggplot(df, aes(fill=Species, y=Value, x=Behavior)) + geom_bar(data = df, position="dodge", stat="identity")
+  g + theme(panel.background = element_rect(fill = "white"),
+            panel.grid.major.y = element_line(colour = "grey70")
+  ) + scale_fill_manual(values=c("#4472C4", "#ED7D31","#A5A5A5", "#FFC000")) + ggtitle(site_name) + theme(plot.title = element_text(hjust = 0.5)) + scale_y_continuous(name="Frequency", breaks=seq(0,1,0.05))
+}
+### Paired group barcharts for year to year comparison of means by site
+paired_barchart <- function(df, site_name) {
+  df.summ <- df %>% 
+    group_by(year, species) %>% 
+    summarize(Mean = ceiling(mean(Time)), Min = min(Time), Max = max(Time), Total = sum(Time))
+  ggplot(df.summ, aes(fill=year, y=Mean, x=species, ymin = Min ,ymax = Max)) + 
+    geom_bar(position="dodge", stat="identity") + 
+    geom_errorbar(width = 0.4, position = position_dodge(.9)) +
+    labs(x="Grazing Species", 
+         y= "Time (min)") + 
+    theme(panel.background = element_rect(fill = "white"),
+          panel.grid.major.y = element_line(colour = "grey70")
+    ) + scale_fill_manual(values=c("#0072B2", "#D55E00")) + 
+    ggtitle(site_name) + theme(plot.title = element_text(hjust = 0.5))
+} 
+### Paired group barcharts for year to year comparison of means betweeen sites
+sitepaired_barchart <- function(df) {
+  df.summ <- df %>% 
+    group_by(site, year, species) %>% 
+    summarize(Mean = ceiling(mean(Time)), Min = min(Time), Max = max(Time), Total = sum(Time))
+  ggplot(df.summ, aes(fill=year, y=Mean, x=species, ymin = Min ,ymax = Max)) + 
+    facet_wrap(~site) + 
+    geom_bar(position="dodge", stat="identity") + 
+    labs(x="Grazing Species", 
+         y= "Time (min)") + 
+    theme(panel.background = element_rect(fill = "white"),
+          panel.grid.major.y = element_line(colour = "grey70")
+    ) + scale_fill_manual(values=c("#0072B2", "#D55E00")) + 
+    ggtitle("Comparison of Heber Site Group Visit Duration by Year") + 
+    theme(plot.title = element_text(hjust = 0.5)) + 
+    scale_y_continuous(name="Time (min)", breaks=seq(0,100,5))
+}
+### Paired group barcharts for year to year comparison of means betweeen sites
+# With error bars
+sitepaired_barchart_we <- function(df) {
+  df.summ <- multsitegrpgrz %>% 
+    group_by(site, year, species) %>% 
+    summarize(Mean = ceiling(mean(Time)), Min = min(Time), Max = max(Time), Total = sum(Time))
+  ggplot(df.summ, aes(fill=year, y=Mean, x=species, ymin = Min ,ymax = Max)) + 
+    facet_wrap(~site) + 
+    geom_bar(position="dodge", stat="identity") + 
+    geom_errorbar(width = 0.4, position = position_dodge(.9)) +
+    labs(x="Grazing Species", 
+         y= "Time (min)") + 
+    theme(panel.background = element_rect(fill = "white"),
+          panel.grid.major.y = element_line(colour = "grey70")
+    ) + scale_fill_manual(values=c("#0072B2", "#D55E00")) + 
+    ggtitle("Comparison of Heber Site Group Visit Duration by Year") + 
+    theme(plot.title = element_text(hjust = 0.5)) + 
+    scale_y_continuous(name="Frequency", breaks=seq(0,100,10))
+}
+### Comparing sites 
+sitepaired_bhv_barchart <- function(df) {
+  df.summ <- df  %>% 
+    group_by(Site, Species, Behavior) %>% 
+    summarize(Total = sum(Value))
+  ggplot(df.summ, aes(fill=Species, y=Total, x=Behavior)) + 
+    facet_wrap(~Site) + 
+    geom_bar(position="dodge", stat="identity") + 
+    labs(x="Grazing Species", 
+         y= "Time (min)") + 
+    theme(panel.background = element_rect(fill = "white"),
+          panel.grid.major.y = element_line(colour = "grey70")
+    ) + scale_fill_manual(values=c("#4472C4", "#ED7D31","#A5A5A5", "#FFC000")) + 
+    ggtitle("Counts of Group Behavior by Site") + 
+    theme(plot.title = element_text(hjust = 0.5)) + 
+    scale_y_continuous(name="Counts", breaks=seq(0,150,10))
+}
+#_______________________________________________________________________________________________________________
+# binding multiple graphs useing ggarrange
+bind2graphs <- function(g1, g2) {
   ggarrange(g1, g2, ncol=2, nrow=1, common.legend = TRUE, legend="bottom")
 }
-
-
-
+bind3graphs <- function(g1, g2, g3) {
+  ggarrange(g1, g2, g3, ncol=3, nrow=1, common.legend = TRUE, legend="bottom")
+}
+bind4graphs <- function(g1, g2, g3, g4) {
+  ggarrange(g1, g2, g3, g4, ncol=2, nrow=2, common.legend = TRUE, legend="bottom")
+}
 
